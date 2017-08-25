@@ -9,7 +9,7 @@ public class Server {
     ServletContextImpl ctx = new ServletContextImpl();
 
     private void run() throws IOException, ServletException {
-        ServerSocket socket = new ServerSocket(8083);
+        ServerSocket socket = new ServerSocket(ctx.getPort());
 
         System.out.println("Servlet listening on port 8083");
         while (true) {
@@ -20,9 +20,15 @@ public class Server {
         }
     }
 
+    private void init() throws Exception {
+        ctx.init();
+    }
+
     public static void main(String[] args) {
         try {
-            new Server().run();
+            Server server = new Server();
+            server.init();
+            server.run();
         }
         catch (Exception e) {
             e.printStackTrace();
