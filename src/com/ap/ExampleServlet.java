@@ -9,6 +9,9 @@ public class ExampleServlet extends HttpServlet {
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         System.out.println("ExampleServlet.doGet");
 
+        // create a session
+        req.getSession();
+
         System.out.println("request URI = " + req.getRequestURI());
         System.out.println("path info = " + req.getPathInfo());
         System.out.println("query string (raw) = " + req.getQueryString());

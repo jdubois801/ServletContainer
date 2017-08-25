@@ -11,6 +11,7 @@ import javax.servlet.Servlet;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 public class Dispatcher {
     private ServletContextImpl ctx;
@@ -34,6 +35,8 @@ public class Dispatcher {
         FilterChain chain = buildFilterChain(req);
 
         HttpServletResponseImpl resp = new HttpServletResponseImpl(this);
+        req.setResponse(resp);
+
         try {
             chain.doFilter(req, resp);
             resp.flushBuffer();
@@ -65,7 +68,15 @@ public class Dispatcher {
         return head;
     }
 
+    public ServletContextImpl getContext() {
+        return ctx;
+    }
 
-    public InputStream getInputStream() { return is; }
-    public OutputStream getOutputStream() { return os; }
+    public InputStream getInputStream() {
+        return is;
+    }
+
+    public OutputStream getOutputStream() {
+        return os;
+    }
 }

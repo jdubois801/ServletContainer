@@ -158,4 +158,8 @@ public class HttpServletResponseImpl extends ServletResponseImpl implements Http
         pw.println();
         pw.close();
     }
+
+    public void attachSession(HttpSession session) {
+        setHeader("Set-Cookie", "JSESSIONID=" + session.getId());
+    }
 }

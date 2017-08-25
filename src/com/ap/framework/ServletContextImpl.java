@@ -22,6 +22,7 @@ public class ServletContextImpl implements ServletContext {
     private Map<String,Filter> filterMap = new HashMap<>();
     private Map<String,Servlet> servletMap = new HashMap<>();
     private int port = 8080;
+    private SessionManager sessionManager = null;
 
     @Override
     public String getContextPath() {
@@ -241,5 +242,12 @@ public class ServletContextImpl implements ServletContext {
                 }
             }
         }
+    }
+
+    public SessionManager getSessionManager() {
+        if (sessionManager == null) {
+            sessionManager = new SessionManager();
+        }
+        return sessionManager;
     }
 }

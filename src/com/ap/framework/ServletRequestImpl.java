@@ -15,6 +15,7 @@ public class ServletRequestImpl implements ServletRequest {
     protected Map<String,List<String>> parameters = new HashMap<>();
 
     public ServletRequestImpl(Dispatcher dispatcher) {
+
         this.dispatcher = dispatcher;
     }
 
@@ -31,11 +32,13 @@ public class ServletRequestImpl implements ServletRequest {
 
     @Override
     public String getCharacterEncoding() {
+
         return characterCoding;
     }
 
     @Override
     public void setCharacterEncoding(String s) {
+
         characterCoding = s;
     }
 
@@ -97,6 +100,7 @@ public class ServletRequestImpl implements ServletRequest {
 
     @Override
     public String getProtocol() {
+
         return protocol;
     }
 

@@ -23,7 +23,7 @@ import java.util.Vector;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
-
+import javax.servlet.http.HttpServletResponse;
 
 public class HttpServletRequestImpl extends ServletRequestImpl implements HttpServletRequest {
     private String method = null;
@@ -31,6 +31,10 @@ public class HttpServletRequestImpl extends ServletRequestImpl implements HttpSe
     private String pathinfo;
     private Map<String,List<String>> headers = new HashMap<>();
     private String queryString = null;
+    private List<Cookie> cookies = null;
+    private Map<String,Cookie> cookieMap = null;
+    private HttpSession session = null;
+    private HttpServletResponse response = null;
 
     public HttpServletRequestImpl(Dispatcher dispatcher) throws IOException {
         super(dispatcher);
@@ -48,14 +52,42 @@ public class HttpServletRequestImpl extends ServletRequestImpl implements HttpSe
 
     @Override
     public String getAuthType() {
-        // TODO: parse the Authorization header
+        String value = getHeader("Authorization");
+        if (value != null && !value.isEmpty()) {
+            String[] components = value.split(" ", 2);
+            if (components.length > 0) {
+                return components[0].toUpperCase();
+            }
+        }
+
         return null;
     }
 
     @Override
     public Cookie[] getCookies() {
-        // TODO: parse cookies
-        return new Cookie[0];
+        if (cookies == null) {
+            cookies = new ArrayList<>();
+            cookieMap = new HashMap<>();
+
+            Enumeration en = getHeaders("Cookie");
+            while (en.hasMoreElements()) {
+                String text = (String) en.nextElement();
+
+                // walk through the list of cookies
+                for (String cookieText : text.split(";\\s*")) {
+
+                    String nvp[] = cookieText.split("=");
+                    Cookie cookie = new Cookie(nvp[0], nvp[1]);
+
+                    // TODO: set other cookie values
+
+                    cookies.add(cookie);
+                    cookieMap.put(nvp[0], cookie);
+                }
+            }
+        }
+
+        return cookies.toArray(new Cookie[0]);
     }
 
     @Override
@@ -83,7 +115,11 @@ public class HttpServletRequestImpl extends ServletRequestImpl implements HttpSe
     @Override
     public Enumeration getHeaders(String s) {
 
-        return Collections.enumeration(headers.get(s));
+        List<String> headerList = headers.get(s);
+        if (headerList == null) {
+            headerList = new ArrayList<>();
+        }
+        return Collections.enumeration(headerList);
     }
 
     @Override
@@ -159,17 +195,34 @@ public class HttpServletRequestImpl extends ServletRequestImpl implements HttpSe
 
     @Override
     public HttpSession getSession(boolean b) {
-        return null;
+        HttpSession result = session;
+        String sessionId = getRequestedSessionId();
+
+        if (b && session == null) {
+            result = session = dispatcher.getContext().getSessionManager().getSession(dispatcher.getContext(), sessionId);
+            ((HttpServletResponseImpl)response).attachSession(session);
+        }
+
+        return result;
     }
 
     @Override
     public HttpSession getSession() {
-        return null;
+
+        return getSession(true);
     }
 
     @Override
     public String getRequestedSessionId() {
-        return null;
+        // start with cookie
+        getCookies();
+        Cookie c = cookieMap.get("JSESSIONID");
+        if (c != null) {
+            return c.getValue();
+        }
+
+        // if no cookie, look for query param
+        return getParameter("JSESSIONID");
     }
 
     @Override
@@ -287,7 +340,7 @@ public class HttpServletRequestImpl extends ServletRequestImpl implements HttpSe
             if (line.charAt(0) == '\r' || line.charAt(0) == '\n') {
                 break;
             }
-            String[] components = line.split(":",2);
+            String[] components = line.split(":\\s*",2);
 
             List<String> slist = headers.get(components[0]);
             if (slist == null) {
@@ -296,5 +349,9 @@ public class HttpServletRequestImpl extends ServletRequestImpl implements HttpSe
             }
             slist.add(components[1].trim());
         }
+    }
+
+    public void setResponse(HttpServletResponseImpl response) {
+        this.response = response;
     }
 }
