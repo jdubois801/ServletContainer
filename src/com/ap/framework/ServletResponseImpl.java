@@ -106,7 +106,9 @@ public class ServletResponseImpl implements ServletResponse {
         }
 
         // might be rundant if "pw" or "out" propogates the flush
-        outputStream.flush();
+        if (outputStream != null) {
+            outputStream.flush();
+        }
     }
 
     @Override
